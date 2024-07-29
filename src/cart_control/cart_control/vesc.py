@@ -26,13 +26,13 @@ from std_msgs.msg import Char
 MsgType = TypeVar("MsgType")
 
 
-CAN_ADDR_R: Final = 1
+CAN_ADDR_R: Final = -1
 CAN_ADDR_L: Final = -1
 UPDATE_RATE: Final = 10  # Hz
 NODE_NAME: Final = "vesc_diff_drv"
 TOPIC: Final = "cmd_vel"  # Float32
-RIGHT_SERIAL_ADDR: Final = "/dev/tty"
-LEFT_SERIAL_ADDR: Final = "/dev/tty"
+RIGHT_SERIAL_ADDR: Final = "/dev/ttyACM0"
+LEFT_SERIAL_ADDR: Final = "/dev/ttyACM1"
 SERIAL_BAUDRATE: Final = 115200
 SERIAL_TIMEOUT: Final = 1  # second
 CONTROL_MODES: Final = frozenset(["duty", "rpm", "current"])
@@ -69,8 +69,9 @@ class SetCommandMsg:
             cmd = COMM_SET_RPM
             value = int(self.val)  # rpm, may need a scaler / multiplier for that
         elif self.control_mode == "current":
+            # print("cuurent")
             cmd = COMM_SET_CURRENT
-            value = int(self.val * 1e3)
+            value = int(self.val*1e3)
         else:
             raise NotImplementedError(
                 f"Unimplemented control mode: {self.control_mode}"
@@ -102,7 +103,6 @@ class VESCDiffDriver(Node):
         self.control_mode = None
         self.declare_parameter("right_serial_port", RIGHT_SERIAL_ADDR)
         self.declare_parameter("left_serial_port", LEFT_SERIAL_ADDR)
-
         self.declare_parameter("control_mode", DEFAULT_CONTROL_MODE)
         self.bind_serial_port(self.get_parameter("right_serial_port").value, self.get_parameter("left_serial_port").value)
         self.set_control_mode(self.get_parameter("control_mode").value)
@@ -180,9 +180,8 @@ class VESCDiffDriver(Node):
                 self.current_right, can_addr=CAN_ADDR_R, control_mode=self.control_mode
             )
             if self.ser_r and self.ser_l:
-                lol = 1
-                # self.ser_r.write(demand_L.as_bytes)
-                # self.ser_l.write(demand_R.as_bytes)
+                self.ser_r.write(demand_L.as_bytes)
+                self.ser_l.write(demand_R.as_bytes)
         except Exception as e:
             self.get_logger().error(f"Failed to control VESC: {e}")
 
