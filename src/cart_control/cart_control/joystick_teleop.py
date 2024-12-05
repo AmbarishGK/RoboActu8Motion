@@ -52,16 +52,16 @@ class JoystickTeleop(Node):
             print("Stop Button Pressed")
             return 'q'  # Stop key
 
-        if linear > 0.5:
+        if linear > 0.5 and linear !=0:
             print("Moving Forward")
             return 'e'  # Move forward
-        elif linear < -0.5:
+        elif linear < -0.5 and linear !=0:
             print("Moving Backward")
             return 'c'  # Move backward
-        elif angular < 0.5:
+        elif angular < 0.5 and angular !=0:
             print("Turning Right")
             return 'd'  # Turn right
-        elif angular > -0.5:
+        elif angular > -0.5 and angular !=0:
             print("Turning Left")
             return 'a'  # Turn left
 
