@@ -45,10 +45,10 @@ COMM_SET_CURRENT: Final = b"\x06"  # expects an int32 of float * 1e3
 COMM_FORWARD_CAN: Final = b"\x22"
 
 speedAndTurnBindings = {
-    'e': (1.1, 1.1),
-    's': (.9, .9),
-    'a': (1.2, 1),
-    'd': (1, 1.2),
+    'e': (1, 1),
+    's': (-1, -1),
+    'a': (1, 0),
+    'd': (0, 1),
     'q': (0, 0),
     'c': (-1., -1.),
 }
@@ -167,9 +167,18 @@ class VESCDiffDriver(Node):
 
     def set_current(self, msg: Union[MsgType, bytes]):
         data = chr(msg.data)
-        self.current_right *= speedAndTurnBindings[data][0]
-        self.current_left *= speedAndTurnBindings[data][1]
 
+        self.current_right += speedAndTurnBindings[data][0]
+        self.current_left += speedAndTurnBindings[data][1]
+        
+        if self.current_right > 25:
+            self.current_right = 25
+        if self.current_left > 25:
+            self.current_left = 25
+        
+        if data == 'q':
+            self.current_right = self.current_left = 0
+            
     def update_vesc_demands(self):
         # self.check_last_update()
         try:
